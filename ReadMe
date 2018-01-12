@@ -1,0 +1,11 @@
+The project consists of 4 files. 
+1 client file and 3 gen files.
+The client is the node that is receiving the information from the other 3 nodes which are generating them.
+This is made to replicate a central node which processes data received from sensors.
+Initially generated data points are received and clusters are formed by the client node.
+This imitates normal conditions for several days sensed by the above sensors.
+Finally, new points are added to be assessed by the client, and are classified as normal/anomalous.
+
+Kindly change the IPs of the nodes as required when trying to run the code. These IPs can be found in lines 48-58 in the client.py file.
+
+The 4 files can be run from a single system as well. If not using raspberry pi's kindly comment out lines 7, 245-251, 257-258, 305-306 in the client.py file.
