@@ -31,7 +31,7 @@ n = 500 #initial cluster points for each server
 t=5 #no. of threads
 k = 3 #no. of clusters
 
-data=[[Coordinate(0,0,0,0) for i in range(n)] for j in range(3)] #array to store coordinates of data points for each server
+data=[[Coordinate(0,0,0,0) for i in range(n)] for j in range(3)] #array to store coordinates of data points for each server (including initial and new points)
 means = [[Coordinate(0,0,0,0) for i in range(k)] for j in range(3)] #array to store coordinates of means of clusters for each server
 max_dist = [[0 for i in range(k)] for j in range(3)] #array to store data point at maximum distance from the cluster center for each server
 clusterCardinality = [[1 for i in range(n)] for j in range(3)] #array to store cardinality of each cluster for each server
@@ -124,10 +124,10 @@ def calc_distance(point1, point2): #Function which calculates and returns the eu
 
 
 def initialize(server): #function for calculating initial cluster centers using kmeans++
-	totaldist = 0
+	totaldist = 0					#Will be used to calculate mean
 	newcentre = random.randint(0,n-1)
-	count=0
-	templist=deepcopy(data[server])
+	count=0						#To keep count of the means initialized
+	templist=deepcopy(data[server])			#The zeroth mean is taken up at random 
 	means[server][count]=templist[newcentre]
 	count+=1
 
@@ -136,6 +136,10 @@ def initialize(server): #function for calculating initial cluster centers using 
 		totaldist=0
 		temp = []
 		dist = []
+		
+		'''The process of initialization works by appending the means one at a time and clustering the points according
+		to squared Euclidean distance. So this loop runs for all n points, 'count' means at a time.
+		'''
 		for i in range(n):
 			minimum = float('inf')
 			for j in range(count):
@@ -145,15 +149,18 @@ def initialize(server): #function for calculating initial cluster centers using 
 			#print("server = " + str(server) + " i = " + str(i) + " newcentre = " + str(newcentre))
 			dist.append(math.pow(calc_distance(data[server][i],means[server][newcentre]),2))
 			totaldist += dist[i]
-
+		''' The next loop is creating an array for the points in which the difference between ith and (i-1)th position tells
+		us the probability of picking that point, according to definition of kmeans++
+		'''
 		for i in range(n):
 			if i == 0 :
 				temp.append(dist[i]/totaldist)
 			else :
 				temp.append(temp[i-1] + dist[i]/totaldist)
 
-		point = random.uniform(0,1)
-
+		point = random.uniform(0,1)	'''We have now chosen a random point between 0 and 1. We will see the position in temp in whose range we will find this point. 
+						This is as good as choosing a point at random, in a distribution poportional to distance squared.
+						'''
 		for i in range(n):
 			if (point <= temp[i]):
 				#means.append(data[i])
@@ -225,7 +232,7 @@ def get_cluster(point,server): #Function to get cluster of the new data point an
 	anomalous = True
 
 	for i in range(len(means[server])):
-		if calc_distance(point, means[server][i]) <= (max_dist[server][i]*1.5) : #checking if the point lies within 5% of the farthest point from the cluster center
+		if calc_distance(point, means[server][i]) <= (max_dist[server][i]*1.1) : #checking if the point lies within 10% of the farthest point from the cluster center
 			anomalous = False
 			if(calc_distance(point, means[server][i]) < min_dist):
 				point.c = i;
@@ -235,20 +242,20 @@ def get_cluster(point,server): #Function to get cluster of the new data point an
 	if anomalous == True :
 		print("\nAnomalous data detected in server " + str(server) + "\n")
 		#turning on the appropriate leds of the raspberry pi according to the server
-		# if server == 0:
-		# 	subprocess.call('echo 1 | sudo tee /sys/class/leds/led1/brightness', shell = True)
-		# elif server == 1:
-		# 	subprocess.call('echo 1 | sudo tee /sys/class/leds/led0/brightness', shell = True)
-		# else:
-		# 	subprocess.call('echo 1 | sudo tee /sys/class/leds/led0/brightness', shell = True)
-		# 	subprocess.call('echo 1 | sudo tee /sys/class/leds/led1/brightness', shell = True)
+		if server == 0:
+			subprocess.call('echo 1 | sudo tee /sys/class/leds/led1/brightness', shell = True)
+		elif server == 1:
+			subprocess.call('echo 1 | sudo tee /sys/class/leds/led0/brightness', shell = True)
+		else:
+			subprocess.call('echo 1 | sudo tee /sys/class/leds/led0/brightness', shell = True)
+			subprocess.call('echo 1 | sudo tee /sys/class/leds/led1/brightness', shell = True)
 		time.sleep(2)
 
 
 
 	else : #updating cluster center with the new point included
-		# subprocess.call('echo 0 | sudo tee /sys/class/leds/led0/brightness', shell = True)
-		# subprocess.call('echo 0 | sudo tee /sys/class/leds/led1/brightness', shell = True)
+		subprocess.call('echo 0 | sudo tee /sys/class/leds/led0/brightness', shell = True)
+		subprocess.call('echo 0 | sudo tee /sys/class/leds/led1/brightness', shell = True)
 		data[server].append(point)
 		updateMeans(server)
 			
@@ -268,7 +275,7 @@ def kmeans(pointArray, server): #performing clustering of the points in the arra
 
 	#clusterCardinality = [1] * len(characteristic_points_s1)
 	
-	temp_points=deepcopy(data[server])
+	temp_points=deepcopy(data[server])		#Initializing to avoid errors
 	for i in range(k):
 		means[server][i] = temp_points[i]
 
@@ -280,7 +287,7 @@ def kmeans(pointArray, server): #performing clustering of the points in the arra
 	while change:
 		change = False
 		terminate += 1
-		if terminate==10:
+		if terminate==10:	#Max number of reclustering set to 10
 			break
 		allThreads=[]
 		for i in range(t):
@@ -295,8 +302,8 @@ def kmeans(pointArray, server): #performing clustering of the points in the arra
 if __name__ == '__main__':
 
 		#turning off both leds of the raspberry pi
-		# subprocess.call('echo 0 | sudo tee /sys/class/leds/led0/brightness', shell = True)
-		# subprocess.call('echo 0 | sudo tee /sys/class/leds/led1/brightness', shell = True)
+		subprocess.call('echo 0 | sudo tee /sys/class/leds/led0/brightness', shell = True)
+		subprocess.call('echo 0 | sudo tee /sys/class/leds/led1/brightness', shell = True)
 
 		#getting 'n' points for initial clustering from the 3 servers
 		for i in range(0,3):
