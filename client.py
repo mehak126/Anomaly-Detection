@@ -4,7 +4,7 @@ import math
 from copy import deepcopy
 import threading
 import random
-#import subprocess
+import subprocess
 import time
 
 
@@ -250,6 +250,8 @@ def get_cluster(point,server): #Function to get cluster of the new data point an
 			subprocess.call('echo 1 | sudo tee /sys/class/leds/led0/brightness', shell = True)
 			subprocess.call('echo 1 | sudo tee /sys/class/leds/led1/brightness', shell = True)
 		time.sleep(2)
+		subprocess.call('echo 0 | sudo tee /sys/class/leds/led0/brightness', shell = True)
+		subprocess.call('echo 0 | sudo tee /sys/class/leds/led1/brightness', shell = True)
 
 
 
