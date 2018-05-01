@@ -10,7 +10,7 @@ Finally, new points are added to be assessed by the client, and are classified a
 
 Kindly change the IPs of the nodes as required when trying to run the code. These IPs can be found in lines 48-58 in the client.py file.
 
-The 4 files can be run from a single system as well. If not using raspberry pi's kindly comment out lines 7, 245-251, 257-258, 305-306 in the client.py file.
+The 4 files can be run from a single system as well. If not using raspberry pi's kindly comment out lines 7, 270-278, 283-284, 339-340 in the client.py file.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Guide to Raspberry Pi
