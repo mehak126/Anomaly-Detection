@@ -12,9 +12,12 @@ serverSocket.bind(('',serverPort))
 def main():
 	count = 0 #to keep count of number of times data has been sent so far
 	characteristic_ratios = [[0.33,0.33,0.33], [0.6,0.3,0.1], [0.2,0.1,0.4]] #0-> file, 1-> jpg, 2-> vid
+	rng = 5.0 #max range percentage of data around the characteristic ratios
+	err = 25.0 #error percentage of anomalous data
 
 	serverSocket.listen(1)
 	print ('The server is ready')
+	ratio = [0,0,0]
 
 	while 1:
 		connectionSocket, addr = serverSocket.accept()
@@ -25,19 +28,56 @@ def main():
 			print("Sending data to client " + str(addr))
 			count += 1
 
-			if (count>500) and (count%10 == 0): #sending anomalous data
-				ratio = [0.1,0.8,0.4]
+			num = random.randint(0,2)
+			send_anomalous = random.randint(0,100)
+
+			if (count>1000) and (send_anomalous>70): #sending anomalous data with a probability of 30%
+				data_ftp = "1"
+				data_jpg = "1"
+				data_vid = "1"
+
+				
+
+				for i in range(3):
+					error = random.uniform(rng*1.05,err)
+					exp = random.randint(0,1)
+				#	ratio[i] = (characteristic_ratios[num][i]+((pow(-1,exp)*(error/100))*characteristic_ratios[num][i])) * 
+					ratio[i] = characteristic_ratios[num][i]+((pow(-1,exp)*(error/100))*characteristic_ratios[num][i])
+			
+			elif (count>1000) and (send_anomalous<=70):
+				data_ftp = "0"
+				data_jpg = "0"
+				data_vid = "0"
+				
+				
+
+				for i in range(3):
+					r = random.uniform(0,rng*1.05)
+					exp = random.randint(0,1)
+					ratio[i] = characteristic_ratios[num][i]+((pow(-1,exp)*(r/100))*characteristic_ratios[num][i])
+
+
 			else: #randomly choosing one of the three characteristic ratios
-				num = random.randint(0,2)
-				ratio = characteristic_ratios[num]		
+				data_ftp = "0"
+				data_jpg = "0"
+				data_vid = "0"
+				
+				
+
+				for i in range(3):
+					r = random.uniform(0,rng)
+					exp = random.randint(0,1)
+					ratio[i] = (characteristic_ratios[num][i]+((pow(-1,exp)*(r/100))*characteristic_ratios[num][i]))	
+
+			
+			# print("ratio = ")
+			# print(ratio)
 
 			data_vid0 = get_vid()
 			data_ftp0 = get_ftp()
 			data_jpg0 = get_jpg()
 
-			data_ftp = ""
-			data_jpg = ""
-			data_vid = ""	
+
 
 			#appending bytes of each of the files to get the file size in the appropriate ratio
 			for i in range(int(ratio[0]*1000)):
