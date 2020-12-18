@@ -1,6 +1,8 @@
+# Anomaly Detection in Network Data
+
 COD310 Mini Project, IIT Delhi
 
-Guide to Programs
+**Guide to Programs**
 
 The project consists of 4 files. 
 1 client file and 3 gen files.
